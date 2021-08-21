@@ -1,0 +1,20 @@
+{% extends 'auctions/layout.html' %}
+{% load myfilters %}
+
+
+{% block body %}
+
+    <div class="form">
+        <form action="{% url 'auctions:create_listing' %}" method="POST">
+            {% csrf_token %}
+            {% for field in new_listing %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field|addclass:'form-control' }}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Sumbit</button>
+        </form>
+    </div>
+
+{% endblock %}

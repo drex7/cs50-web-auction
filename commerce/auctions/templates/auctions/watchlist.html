@@ -1,0 +1,11 @@
+{% extends 'auctions/layout.html' %}
+
+{% block heading %}
+    <h2>Watchlist</h2>
+{% endblock %}
+
+{% block body %}
+        {% include 'auctions/for_each_listing.html' with list=watchlist empty_msg="You haven't added any listing to the watchlist" %}
+{% endblock %} 
+
+

@@ -1,0 +1,149 @@
+{% extends 'auctions/layout.html' %}
+{% load myfilters %}
+
+{% block body %}
+	<div class="main">
+		<div class="card mb-3 p-3">
+			<div class="row g-0">
+			  <div class="col-md-4">
+				<img src="{{ listing.image_url }}" class="listing-pg-img" alt="{{ listing.title }}">
+				<!-- Watchlist -->
+				{% if user.is_authenticated and listing.active %}
+					<form action="{% url 'auctions:watchlist' listing.id %}" method="POST" class="text-center my-3">
+						{% csrf_token %}
+						
+						<!-- Checking if item is on watchlist -->
+						{% if is_on_watchlist %}
+							<div>
+								<!--  remove from watchlist -->
+								<input type="hidden" name="action" value="remove">
+								<button class="btn btn-primary" type="submit">Remove from watchlist</button>
+							</div>
+						{% else %} 
+							<div>
+								<!-- Add to watchlist -->
+								<input type="hidden" name="action" value="add">
+								<button class="btn btn-primary" type="submit">Add to watchlist</button>
+							</div>
+						{% endif %}
+					</form>
+				{% endif %}
+			  </div>
+			  <div class="col-md-8">
+				<div class="card-body">
+				  <h5 class="card-title">{{ listing.title }}</h5>
+				  <p class="card-text">{{ listing.description }}.</p>
+				</div>
+				<div class="listing-details">
+					<ul class="list-group list-group-flush">
+						<li class="list-group-item item-price">Listed by: {{ listing.created_by }}</li>
+                        <li class="list-group-item created">Category: {{ listing.category }}</li>
+					</ul>
+				</div>
+				<div class="price-info">
+					{% if listing.active %}
+						Starting bid: <strong>${{ listing.starting_bid }}</strong>
+						{% if highest_bid > listing.starting_bid %}
+							<p class="fs-4 text-info mt-2">Current bid: <strong>${{ highest_bid }}</strong> by {{ highest_bidder }}</p>
+						{% else %}
+							<p class="fs-4 text-info mt-3">No bids yet</p>
+						{% endif %}
+					{% else %}
+						<div class="listing-status bg-success text-center text-white position-absolute border border-success p-3">
+							<div>Bidding is closed.</div>
+							{% if highest_bidder|stringformat:"s" == request.user|stringformat:"s" %}
+								<div>You won this bidding.</div>
+							{% else %}
+								<div>{{ highest_bidder }} won this bidding</div>
+							{% endif %}
+						</div>
+					{% endif %}
+				</div>
+				<!-- Bidding Section -->
+				<div class="bidding-sec">
+					{% if user.is_authenticated and listing.active %}
+						<div class="listing-biz">
+							<!-- Checking if current user created this listing -->
+							<!-- If true, then allow user to close bid -->
+							{% if request.user|stringformat:"s" == listing.created_by|stringformat:"s" %} 
+								<form action="{% url 'auctions:listing' listing.id listing.title %}" method="POST">
+									{% csrf_token %}
+									<button type="submit" name="action" value="close" class="btn btn-primary">Close bidding</button>
+								</form>
+							{% else %}  
+							<!-- Bid placement form -->
+								<form action="{% url 'auctions:listing' listing.id listing.title %}" method="POST" class="row row-cols-lg-auto ml-0 g-3 align-items-center">
+									{% csrf_token %} 
+								<!-- Alert messages -->
+									{% if form_validity == "is-invalid" %}
+										<div class="alert alert-danger" role="alert">
+											Bid should be larger than the current highest bid
+										</div>
+									{% elif form_validity == "is-valid" %}
+										<div class="alert alert-success" role="alert">
+											Bid successfully placed
+										</div>
+									{% else %}
+									{% endif %}
+									
+									<div class="form row">
+										<div class="input-group mb-3">
+											<span class="input-group-text sm">$</span>
+											<input type="number" name="amount" min="{{ highest_bid|add:1 }}" class="form-control {{ form_validity }}" aria-label="Amount (to the nearest dollar)" required>
+											<input type="hidden" name="action" value="bid">
+											<span class="input-group-text">.00</span>
+											<div class="invalid-feedback">Amount should be larger than ${{ highest_bid|add:1 }}</div>
+											<button type="submit" class="btn ml-3 btn-primary">Submit</button>   
+										</div>
+									</div>
+								
+								</form>
+							{% endif %}
+							
+						</div>
+					{% endif %}
+				</div>
+			  </div> <!---End col-md-8-->
+			</div>
+		</div>
+
+		<div class="comment-section mt-5 w-50">
+			{% if user.is_authenticated %}
+				<div class="comment-form">
+					<form action="{% url 'auctions:listing' listing.id listing.title %}" method="POST">
+						{% csrf_token %}
+						<textarea class="form-control mb-2" name="content" placeholder="Enter your comments here..."></textarea>
+						<input type="hidden" name="listing_id" value="{{ listing.id }}">
+						<button class="btn btn-primary" type="submit" name="action" value="comment">Submit</button>
+					</form>
+				</div>
+			{% else %}
+				<div class="mb-4"><a href="{% url 'auctions:login' %}">Login to comment</a></div>
+			{% endif %}
+				<div class="comments-heading"> 
+					<h6>ALL COMMENTS</h6>
+				</div>
+				<div class="comments-display row">
+					<ol class="comment-list">    
+						{% for comment in comments %}
+							<li class="comment">    
+								<div class="comment-meta">
+									
+									{% if user|stringformat:"s" == comment.username|stringformat:"s" %}
+										<div class="comment-author">You</div>
+									{% else %}
+										<div class="comment-author">{{ comment.username }}</div>
+									{% endif %}
+									<div class="comment-time">{{ comment.time.ctime }}</div>
+								</div>
+								<p class="comment-content">{{ comment.content }}</p> 
+							</li>
+						{% empty %}
+							<p class="text-center mt-3">Be the first to comment on the listing.</p>
+						{% endfor %}
+					</ol>
+				</div>
+		</div>
+	</div>
+
+{% endblock %}

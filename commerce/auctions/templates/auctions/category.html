@@ -1,0 +1,22 @@
+{% extends "auctions/layout.html" %}
+
+{% block heading %}
+    <h2>Categories</h2>
+{% endblock %}
+
+{% block body %}
+    <div class="rounded mb-5">
+        <div class="mb-3">Select a category below:</div>
+        <ul class="list-unstyled list-inline text-center">
+        {% for category in categories %}                              
+            <li class="list-inline-item"><a href="{% url 'auctions:category' category %}" class="btn btn-sm btn-outline-primary">{{ category }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+    
+    <div class="">
+        {% include 'auctions/for_each_listing.html' with empty_msg="No listings under this category" list=listings_by_category %}
+    </div>    
+
+{% endblock %}
+

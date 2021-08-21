@@ -1,0 +1,12 @@
+{% extends "auctions/layout.html" %}
+
+{% block heading %}
+    <h2>Active Listings</h2>
+{% endblock %}
+
+    
+{% block body %}
+    {% include 'auctions/for_each_listing.html' with list=listings empty_msg='No listings have been posted yet' %}
+{% endblock %}
+
+

@@ -1,0 +1,38 @@
+<div class="all-listings row">
+    {% for item in list %}
+        <div class="col-xl-3 col-sm-4 mb-3">
+            <div class="card active-{{ item.active }} p-3" >
+                <a href="{% url 'auctions:listing' item.id item.title %}">    
+                    <img 
+                        src="{{ item.image_url }}"
+                        alt="{{ item.title }}" 
+                        class="card-img-top"
+                    />
+                    <div class="card-body">
+                        <h5 class="card-title text-center">{{ item.title }}</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item item-price">Price: ${{ item.starting_bid }}</li>
+                        <li class="list-group-item created">Created {{ item.created_at }}</li>
+                    </ul>   
+                </a>
+
+                <!-- Watchlist Section -->
+                {% if user.is_authenticated and item.active %}
+                    <form action="{% url 'auctions:watchlist' item.id %}" method="POST" class="text-center">
+                        {% csrf_token %}                    
+                        {% if item.is_on_watchlist %}
+                            <input name="action" value="remove" type="hidden">
+                            <button type="submit" class="btn btn-primary">Remove from Watchlist</button>
+                        {% else %}
+                            <input name="action" value="add" type="hidden">
+                            <button type="submit" class="btn btn-primary">Add to Watchlist</button>
+                        {% endif %}
+                    </form>
+                {% endif %}  
+            </div>
+        </div>
+    {% empty %}
+        <div class="text-info text-center w-100 mt-5 fs-4">{{ empty_msg }}</div>
+    {% endfor %}
+</div>
